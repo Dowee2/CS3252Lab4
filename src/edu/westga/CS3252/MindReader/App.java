@@ -1,5 +1,7 @@
+package edu.westga.CS3252.MindReader;
+
 public class App {
     public static void main(String[] args) throws Exception {
-        System.out.println("Hello, World!");
+        MindReader mindReader = new MindReader();
     }
 }

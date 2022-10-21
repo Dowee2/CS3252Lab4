@@ -23,8 +23,8 @@ public class MindReader {
         this.npcScore = 0;
         this.playerTracker = new HashMap<GuessQueue,Integer>();
         this.systemInput = new Scanner(System.in);
-
-        this.initalize();
+        this.playerGuesses = new GuessQueue();
+        this.startGame();
     }
 
     public MindReader(HashMap<GuessQueue,Integer> oldKnowledge) {
@@ -32,39 +32,33 @@ public class MindReader {
         this.npcScore = 0;
         this.playerTracker = oldKnowledge;
         this.systemInput = new Scanner(System.in);
+        this.playerGuesses = new GuessQueue();
         
-        this.initalize();
+        this.startGame();
     }
-    private void initalize() {
+    private void startGame() {
         System.out.println("Welcome to MindReader" + System.lineSeparator() + this.PREDICT_TEXT);
         this.handlePlayerGuess(systemInput.nextLine());
     }
 
-    private String makeGuess() {
-        int guesswieght = this.playerTracker.get(this.playerGuesses);
-        String guess = "";
-
-        if (guesswieght < 0) {
-            guess = "t";
-        } else if (guesswieght > 0) {
-            guess = "h";
-        } else {
-            guess = Utils.randomGuess();
-        }
-        return guess;
-    }
+   
 
     private void handlePlayerGuess(String guess) {
+        guess = guess.trim();
+        guess = guess.toLowerCase();
         this.handleInvalidInput(guess);
-
         String npcGuess = this.makeGuess();
+
         if (npcGuess.equals(guess)) {
             this.npcScore++;
-            System.out.println("You guessed right! You have " + this.playerScore + " points.");
+            System.out.println("I guessed right!" + System.lineSeparator() + 
+            "Your score: " + this.playerScore + System.lineSeparator() + "My score: " + this.npcScore);
         } else {
             this.playerScore++;
-            System.out.println("You guessed wrong! I have " + this.npcScore + " points.");
+            System.out.println("I guessed wrong!" + System.lineSeparator() + 
+            "Your score: " + this.playerScore + System.lineSeparator() + "My score: " + this.npcScore);
         }
+
         if(this.playerGuesses.size() < 4) {
             this.playerGuesses.add(guess);
         } else {
@@ -76,29 +70,65 @@ public class MindReader {
                 this.playerGuesses.add(guess);
             }
         }
+        this.handleRoundEnd();
+    }
+
+    private String makeGuess() {
+        int guesswieght = 0;
+        String guess = "";
+        
+        if (this.playerTracker.get(playerGuesses) == null) {
+            return Utils.randomGuess();
+        } else {
+            guesswieght = this.playerTracker.get(playerGuesses);
+        }
+
+        if (guesswieght < 0) {
+            guess = "t";
+        } else if (guesswieght > 0) {
+            guess = "h";
+        } else {
+            guess = Utils.randomGuess();
+        }
+        return guess;
     }
 
     private void handleInvalidInput(String guess) {
-        guess = guess.trim();
-        guess = guess.toLowerCase();
-        if (guess.equals("h") || guess.equals("t")) {
-            this.handlePlayerGuess(guess);
-        } else {
+        if (!(guess.equals("h") || guess.equals("t"))) {
             System.out.println("Invalid input. Please enter h or t");
             this.handlePlayerGuess(systemInput.nextLine());
         }
     }
 
     private void calculateGuessValue(String guess) {
-        if (guess.toLowerCase() == "h") {
+        if (guess.equals("h") ) {
             this.playerTracker.put(this.playerGuesses, this.playerTracker.get(this.playerGuesses) + 1);
         } else {
             this.playerTracker.put(this.playerGuesses, this.playerTracker.get(this.playerGuesses) - 1);
         }
     }
 
+    private void handleRoundEnd() {
+        if (this.playerScore < 25 && this.npcScore < 25) {
+            System.out.println(this.PREDICT_TEXT);
+            this.handlePlayerGuess(systemInput.nextLine());
+        } else {
+            this.handleGameEnd();
+        }
+            
+    }
 
+    private void handleGameEnd() {
+        System.out.println("Would you like to play again? [y/n]");
+        String input = systemInput.nextLine();
+        if (input.toLowerCase().equals("y")) {
+            this.playerScore = 0;
+            this.npcScore = 0;
+            this.startGame();
 
-    
-
+        } else {
+            System.out.println("Thanks for playing!");
+            System.exit(0);
+        }
+    }
 }
